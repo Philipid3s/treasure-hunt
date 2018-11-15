@@ -1,0 +1,8 @@
+{
+    "blockchain": {
+        "provider": "https://ropsten.infura.io/v3/bb61e319c9c740e5a85634a10ed60690",
+        "public_key": "0xA7236a1aD6EA72649EDdB0045501ae92AD61d0Cb",
+        "private_key": "0125B734C0DD896E27B14712C5FAD54CB8EF77A09A55AF01281F8FFF9FA697D9",
+        "contract": "0xA0C81b075146BA668145841edF925EC4cF45a830"
+    }
+}
