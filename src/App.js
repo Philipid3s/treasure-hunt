@@ -36,7 +36,19 @@ const tokens = [
   },
   {
     id: "domaine de kerjan / 003",
-    coordinates : {latitude:48.360498, longitude: -4.746688}
+    coordinates : {latitude: 48.360498, longitude: -4.746688}
+  },
+  {
+    id: "central park / 004",
+    coordinates : {latitude: 40.7745036, longitude: -73.9717745}
+  },
+  {
+    id: "tenanmen plaza / 005",
+    coordinates : {latitude: 39.9054936, longitude: 116.3954377}
+  },
+  {
+    id: "eiffel tower / 006",
+    coordinates : {latitude: 48.8583701, longitude: 2.2944813}
   }
 ];
 
@@ -276,7 +288,7 @@ class App extends Component {
         )}
         <br />
         
-        <span>Your address (<a href="https://ropsten.etherscan.io/">ropsten</a> network) <input id="address" value={this.state.account}></input></span>
+        <span>Your address (<a href="https://ropsten.etherscan.io/">ropsten</a> network) <input id="address" defaultValue={this.state.account}></input></span>
 
         <br />
         <br />
@@ -308,7 +320,7 @@ class App extends Component {
         <tbody>
           <tr>
             <td>{Web3.version}</td>
-            <td>{typeof web3 !== 'undefined' ? ('metamask') : ('undefined')}</td>
+            <td>{typeof window.web3 !== 'undefined' ? ('metamask') : ('undefined')}</td>
             <td>{this.state.account}</td>
           </tr>
         </tbody>
