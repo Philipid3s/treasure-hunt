@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import haversine from "haversine";
 import { Map, Marker, Popup, TileLayer } from 'react-leaflet';
+import { Button, Table, Alert, Panel } from 'react-bootstrap';
 
 import './App.css';
 
@@ -9,14 +10,11 @@ const abi = require('./erc20_abi.json');
 const Web3 = require('web3');
 const Tx = require('ethereumjs-tx');
 
-const web3 = new Web3();
+const web3 = new Web3(new Web3.providers.HttpProvider(config.blockchain.provider));
 console.log(web3);
 
 const secretkey = new Buffer(config.blockchain.private_key, 'hex')
 const fromAccount = config.blockchain.public_key;
-
-// how to get to Account
-const toAccount = '0x0D85C541489b4c67Df516b86898e1ED59c8d639a';
 
 const contractAddress = config.blockchain.contract;
 const contract = new web3.eth.Contract(abi, contractAddress, 
@@ -35,6 +33,10 @@ const tokens = [
   {
     id: "tanah merah playgroud / 002",
     coordinates : {latitude: 1.3288562, longitude: 103.9468565}
+  },
+  {
+    id: "domaine de kerjan / 003",
+    coordinates : {latitude:48.360498, longitude: -4.746688}
   }
 ];
 
@@ -48,7 +50,9 @@ class App extends Component {
       routeCoordinates: [],
       distanceTravelled: 0,
       prevLatLng: {},
-      txUrl: ''
+      txUrl: '',
+      txError: '',
+      account: ''
     };
   }
 
@@ -64,12 +68,26 @@ class App extends Component {
     );
 
     // Modern dapp browsers...
-    if (window.ethereum || window.web3) {
+    if (window.web3.currentProvider.isMetaMask) {
       console.log('Metamask detected');
     }
   }
 
   componentDidMount() {
+
+    let toAccount = "";
+
+    window.web3.eth.getAccounts((err, accounts) => {
+      if (err) {
+        console.log(err);
+      }
+      else {
+        console.log(accounts);
+
+        if(accounts.length > 0)
+          toAccount = accounts[0];
+      }
+    });
 
     this.watchID = navigator.geolocation.watchPosition(
       position => {
@@ -87,10 +105,9 @@ class App extends Component {
           routeCoordinates: routeCoordinates.concat([newCoordinate]),
           distanceTravelled:
             distanceTravelled + this.calcDistance(newCoordinate),
-          prevLatLng: newCoordinate
+          prevLatLng: newCoordinate,
+          account: toAccount
         });
-
-        // 1. create list of Tokens [ {token: "id", {latitude: ... , longitude: ...} }]
 
         tokens.every(({id, coordinates}) => {
           const distance = this.calcDistance(coordinates);
@@ -108,10 +125,6 @@ class App extends Component {
             return true;
           }
         });
-
-        // todo 2. add these Tokens to the Map
-        // todo 3. check distance with current position
-
       },
       error => console.log(error),
       { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
@@ -147,6 +160,7 @@ class App extends Component {
   
     web3.eth.getTransactionCount(fromAccount, (err, txCount) => {
       // send 1 BT BreizhToken
+      const toAccount = document.getElementById("address").value;
       const data = contract.methods.transfer(toAccount, '1').encodeABI();
   
       // create transaction object
@@ -171,15 +185,25 @@ class App extends Component {
         (err, hash) => {
         if (!err) {
           const url = `https://ropsten.etherscan.io/tx/${hash}`;
-          
-          this.setState({
-            txUrl: url
-          });
-  
           console.log(url);
+          
+          this.setState(
+            {
+              txUrl: url,
+              txError: ''
+            }
+          );
         }
-        else
-            console.log(err);
+        else {
+          console.log(err);
+
+          this.setState(
+            {
+              txUrl: '',
+              txError: err.message
+            }
+          );
+        }
       });
     });
   }
@@ -189,9 +213,14 @@ class App extends Component {
       <div className="App">
         <header className="App-header">
           <p>
-            Treasure Hunt
+            Tokens Hunt
           </p>
         </header>
+        
+        <Panel>
+          <Panel.Body><strong>Tokens Hunt DApp</strong>: a proof-of-concept for a Proof of Location (<strong>PoL</strong>) system 
+          using <strong>blockchain</strong> and <strong>geolocation</strong>.</Panel.Body>
+        </Panel>
 
         {this.state.longitude !== 0 && this.state.latitude !== 0 ? (
           <div>
@@ -233,18 +262,43 @@ class App extends Component {
         <br />
         <br />
         
-        <div> 
-        
-        <span>Your address (<a href="https://ropsten.etherscan.io/">ropsten</a> network) <input id="address"></input>      </span>
+        <span>Your address (<a href="https://ropsten.etherscan.io/">ropsten</a> network) <input id="address" value={this.state.account}></input></span>
 
-        <button onClick={this.digup} id="btnDigUp">
-          dig up coin 
-        </button>
-        
         <br />
         <br />
-        <a href={`${this.state.txUrl}`}>{this.state.txUrl}</a>
-        </div>
+
+        <Button bsStyle="primary" onClick={this.digup} id="btnDigUp">
+          dig up coin
+        </Button>
+
+        <br />
+        <br />
+
+        {this.state.txError !== '' ? (
+          <Alert bsStyle="danger">{this.state.txError}</Alert>
+        ) : (
+          <Button bsStyle="link" href={`${this.state.txUrl}`}>{this.state.txUrl}</Button>
+        )}
+
+        <br />
+        <br />
+
+        <Table striped bordered condensed hover>
+        <thead>
+          <tr>
+            <td>web3.js</td>
+            <td>provider</td>
+            <td>account</td>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{Web3.version}</td>
+            <td>{typeof web3 !== 'undefined' ? ('metamask') : ('undefined')}</td>
+            <td>{this.state.account}</td>
+          </tr>
+        </tbody>
+        </Table>
       </div>
     );
   }
