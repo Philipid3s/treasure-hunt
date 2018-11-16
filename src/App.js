@@ -269,6 +269,11 @@ class App extends Component {
         )}
 
         <br />
+        {(typeof window.web3 === 'undefined') ? (
+          <Alert bsStyle="danger">Please use a web3 browser</Alert>
+        ):( 
+          <Alert bsStyle="info">web3 browser detected</Alert>
+        )}
         <br />
         
         <span>Your address (<a href="https://ropsten.etherscan.io/">ropsten</a> network) <input id="address" value={this.state.account}></input></span>
