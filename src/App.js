@@ -68,8 +68,14 @@ class App extends Component {
     );
 
     // Modern dapp browsers...
-    if (window.web3.currentProvider.isMetaMask) {
-      console.log('Metamask detected');
+    if (typeof window.web3 === 'undefined') {
+      // no web3, use fallback
+      console.error("Please use a web3 browser");
+    }
+    else {
+      if (window.web3.currentProvider.isMetaMask) {
+        console.log('Metamask detected');
+      }
     }
   }
 
@@ -77,17 +83,20 @@ class App extends Component {
 
     let toAccount = "";
 
-    window.web3.eth.getAccounts((err, accounts) => {
-      if (err) {
-        console.log(err);
-      }
-      else {
-        console.log(accounts);
-
-        if(accounts.length > 0)
-          toAccount = accounts[0];
-      }
-    });
+    if (typeof window.web3 !== 'undefined')
+    {
+      window.web3.eth.getAccounts((err, accounts) => {
+        if (err) {
+          console.log(err);
+        }
+        else {
+          console.log(accounts);
+  
+          if(accounts.length > 0)
+            toAccount = accounts[0];
+        }
+      });
+    }
 
     this.watchID = navigator.geolocation.watchPosition(
       position => {
